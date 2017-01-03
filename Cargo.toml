@@ -1,0 +1,6 @@
+[package]
+name = "glulx"
+version = "0.1.0"
+authors = ["Bryan E. Barnhart <bryan.e.barnhart@gmail.com>"]
+
+[dependencies]
