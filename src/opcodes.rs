@@ -98,9 +98,7 @@ pub fn op_fadd(l1: f32, l2: f32) -> f32 { l1 + l2 }
 pub fn op_fsub(l1: f32, l2: f32) -> f32 { l1 - l2 }
 pub fn op_fmul(l1: f32, l2: f32) -> f32 { l1 * l2 }
 pub fn op_fdiv(l1: f32, l2: f32) -> f32 { l1 / l2 }
-/*
-pub fn op_fmod
-*/
+pub fn op_fmod(l1: f32, l2: f32) -> (f32, f32) { ((l1 / l2).trunc(), l1 % l2) }
 pub fn op_sqrt(l1: f32) -> f32 { l1.sqrt() }
 pub fn op_exp(l1: f32) -> f32 { l1.exp() }
 pub fn op_log(l1: f32) -> f32 { l1.ln() }

@@ -468,7 +468,11 @@ fn eval(glulx: Glulx, opcode: Opcode) {
             let ret = op_fdiv(glulx.load(l1), glulx.load(l2));
             glulx.save(s1, ret);
         },
-        // TODO: FMOD(Load, Load, Save, Save),
+        FMOD(l1, l2, s1, s2) => {
+            let ret = op_fmod(glulx.load(l1), glulx.load(l2));
+            glulx.save(s1, ret.0);
+            glulx.save(s2, ret.1);
+        }
         SQRT(l1, s1) => {
             let ret = op_sqrt(glulx.load(l1));
             glulx.save(s1, ret);
