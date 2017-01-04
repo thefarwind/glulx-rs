@@ -31,11 +31,13 @@ pub fn op_return
 pub fn op_catch
 pub fn op_throw
 pub fn op_tailcall
-// copy
-// copys
-// copyb
-pub fn op_sexs
-pub fn op_sexb
+*/
+pub fn op_copy(l1: u32) -> u32 { l1 }
+pub fn op_copys(l1: u16) -> u16 { l1 }
+pub fn op_copyb(l1: u8) -> u8 { l1 }
+pub fn op_sexs(l1: u32) -> i32 { l1 as u16 as i32 }
+pub fn op_sexb(l1: u32) -> i32 { l1 as i8 as i32 }
+/*
 pub fn op_aload
 pub fn op_aloads
 pub fn op_aloadb

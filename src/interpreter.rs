@@ -362,19 +362,25 @@ fn eval(glulx: Glulx, opcode: Opcode) {
         // TODO: THROW(l1, l2),
         // TODO: TAILCALL(l1, l2),
         COPY(l1, s1) => {
-            let ret: u32 = glulx.load(l1);
+            let ret = op_copy(glulx.load(l1));
             glulx.save(s1, ret);
         },
         COPYS(l1, s1) => {
-            let ret: u16 = glulx.load(l1);
+            let ret = op_copys(glulx.load(l1));
             glulx.save(s1, ret);
         },
         COPYB(l1, s1) => {
-            let ret: u8 = glulx.load(l1);
+            let ret = op_copyb(glulx.load(l1));
             glulx.save(s1, ret);
         },
-        // TODO: SEXS(l1, s1),
-        // TODO: SEXB(l1, s1),
+        SEXS(l1, s1) => {
+            let ret = op_sexs(glulx.load(l1));
+            glulx.save(s1, ret);
+        },
+        SEXB(l1, s1) => {
+            let ret = op_sexs(glulx.load(l1));
+            glulx.save(s1, ret);
+        },
         // TODO: ALOAD(l1, l2, s1),
         // TODO: ALOADS(l1, l2, s1),
         // TODO: ALOADB(l1, l2, s1),
