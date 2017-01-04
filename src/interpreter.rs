@@ -66,6 +66,60 @@ trait Machine<T> {
 }
 
 
+impl Machine<u8> for Glulx {
+    fn load(&mut self, load: Load) -> u8 {
+        use super::instructions::Load::*;
+
+        match load {
+            Const(val) => val as u8,
+            Addr(ptr) => self.memory.read(ptr),
+            Pop => self.stack.pop(),
+            Frame(ptr) => self.stack.read(ptr),
+            Ram(ptr) => self.memory.ram_read(ptr),
+        }
+    }
+
+    fn save(&mut self, save: Save, value: u8){
+        use super::instructions::Save::*;
+
+        match save {
+            Null => {},
+            Addr(ptr) => self.memory.write(ptr, value),
+            Push => self.stack.push(value),
+            Frame(ptr) => self.stack.write(ptr, value),
+            Ram(ptr) => self.memory.ram_write(ptr, value),
+        }
+    }
+}
+
+
+impl Machine<u16> for Glulx {
+    fn load(&mut self, load: Load) -> u16 {
+        use super::instructions::Load::*;
+
+        match load {
+            Const(val) => val as u16,
+            Addr(ptr) => self.memory.read(ptr),
+            Pop => self.stack.pop(),
+            Frame(ptr) => self.stack.read(ptr),
+            Ram(ptr) => self.memory.ram_read(ptr),
+        }
+    }
+
+    fn save(&mut self, save: Save, value: u16){
+        use super::instructions::Save::*;
+
+        match save {
+            Null => {},
+            Addr(ptr) => self.memory.write(ptr, value),
+            Push => self.stack.push(value),
+            Frame(ptr) => self.stack.write(ptr, value),
+            Ram(ptr) => self.memory.ram_write(ptr, value),
+        }
+    }
+}
+
+
 impl Machine<i32> for Glulx {
     fn load(&mut self, load: Load) -> i32 {
         use super::instructions::Load::*;
@@ -307,9 +361,18 @@ fn eval(glulx: Glulx, opcode: Opcode) {
         // TODO: CATCH(s1, l1),
         // TODO: THROW(l1, l2),
         // TODO: TAILCALL(l1, l2),
-        // TODO: COPY(l1, s1),
-        // TODO: COPYS(l1, s1),
-        // TODO: COPYB(l1, s1),
+        COPY(l1, s1) => {
+            let ret: u32 = glulx.load(l1);
+            glulx.save(s1, ret);
+        },
+        COPYS(l1, s1) => {
+            let ret: u16 = glulx.load(l1);
+            glulx.save(s1, ret);
+        },
+        COPYB(l1, s1) => {
+            let ret: u8 = glulx.load(l1);
+            glulx.save(s1, ret);
+        },
         // TODO: SEXS(l1, s1),
         // TODO: SEXB(l1, s1),
         // TODO: ALOAD(l1, l2, s1),
@@ -356,8 +419,17 @@ fn eval(glulx: Glulx, opcode: Opcode) {
         // TODO: CALLFI(l1, l2, s1),
         // TODO: CALLFII(l1, l2, l3, s1),
         // TODO: CALLFIII(l1, l2, l3, l4, s1),
-        // TODO: MZERO(l1, l2),
-        // TODO: MCOPY(l1, l2, l3),
+        MZERO(l1, l2) => {
+            let l1 = glulx.load(l1);
+            let l2 = glulx.load(l2);
+            glulx.memory.zero_range(l1, l2)
+        },
+        MCOPY(l1, l2, l3) => {
+            let l1 = glulx.load(l1);
+            let l2 = glulx.load(l2);
+            let l3 = glulx.load(l3);
+            glulx.memory.copy_range(l1, l2, l3)
+        },
         // TODO: MALLOC(l1, s1),
         // TODO: MFREE(l1),
         // TODO: ACCELFUNC(l1, l2),

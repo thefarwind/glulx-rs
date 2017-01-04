@@ -31,9 +31,9 @@ pub fn op_return
 pub fn op_catch
 pub fn op_throw
 pub fn op_tailcall
-pub fn op_copy
-pub fn op_copys
-pub fn op_copyb
+// copy
+// copys
+// copyb
 pub fn op_sexs
 pub fn op_sexb
 pub fn op_aload
@@ -80,8 +80,8 @@ pub fn op_callf
 pub fn op_callfi
 pub fn op_callfii
 pub fn op_callfiii
-pub fn op_mzero
-pub fn op_mcopy
+// mzero
+// mcopy
 pub fn op_malloc
 pub fn op_mfree
 pub fn op_accelfunc

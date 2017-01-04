@@ -169,7 +169,11 @@ pub enum Opcode {
     CALLFI(Load, Load, Save),
     CALLFII(Load, Load, Load, Save),
     CALLFIII(Load, Load, Load, Load, Save),
+
+    /// Zero `l1: u32` points in memory starting at the second `u32`.
     MZERO(Load, Load),
+
+    /// Copy `l1: u32` points in memory from `l2: u32` to `l3: u32`.
     MCOPY(Load, Load, Load),
     MALLOC(Load, Save),
     MFREE(Load),
