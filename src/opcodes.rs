@@ -110,13 +110,16 @@ pub fn op_asin(l1: f32) -> f32 { l1.asin() }
 pub fn op_acos(l1: f32) -> f32 { l1.acos() }
 pub fn op_atan(l1: f32) -> f32 { l1.atan() }
 pub fn op_atan2(l1: f32, l2: f32) -> f32 { l1.atan2(l2) }
-/*
-pub fn op_jfeq
-pub fn op_jfne
-pub fn op_jflt
-pub fn op_jfle
-pub fn op_jfgt
-pub fn op_jfge
-*/
+pub fn op_jfeq(l1: f32, l2: f32, l3: f32) -> bool {
+    let l3 = l3.abs();
+    (l1 + l3 > l2) && (l2 > l1 - l3)
+}
+pub fn op_jfne(l1: f32, l2: f32, l3: f32) -> bool {
+    !op_jfeq(l1, l2, l3)
+}
+pub fn op_jflt(l1: f32, l2: f32) -> bool { l1 < l2 }
+pub fn op_jfle(l1: f32, l2: f32) -> bool { l1 <= l2 }
+pub fn op_jfgt(l1: f32, l2: f32) -> bool { l1 < l2 }
+pub fn op_jfge(l1: f32, l2: f32) -> bool { l1 >= l2 }
 pub fn op_jisnan(l1: f32) -> bool { l1.is_nan() }
 pub fn op_jisinf(l1: f32) -> bool { l1.is_infinite() }

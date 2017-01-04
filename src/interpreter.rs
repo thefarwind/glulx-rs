@@ -435,14 +435,70 @@ fn eval(glulx: Glulx, opcode: Opcode) {
             let ret = op_atan2(glulx.load(l1), glulx.load(l2));
             glulx.save(s1, ret);
         },
-        // TODO JFEQ
-        // TODO JFNE
-        // TODO JFLT
-        // TODO JFLE
-        // TODO JFGT
-        // TODO JFGE
-        // TODO JISNAN
-        // TODO JISINF
+        JFEQ(l1, l2, l3, l4) => {
+            glulx = if op_jfeq(glulx.load(l1), glulx.load(l2), glulx.load(l3)){
+                let ret = glulx.load(l4);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JFNE(l1, l2, l3, l4) => {
+            glulx = if op_jfne(glulx.load(l1), glulx.load(l2), glulx.load(l3)){
+                let ret = glulx.load(l4);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JFLT(l1, l2, l3) => {
+            glulx = if op_jflt(glulx.load(l1), glulx.load(l2)) {
+                let ret = glulx.load(l3);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JFLE(l1, l2, l3) => {
+            glulx = if op_jfle(glulx.load(l1), glulx.load(l2)) {
+                let ret = glulx.load(l3);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JFGT(l1, l2, l3) => {
+            glulx = if op_jfgt(glulx.load(l1), glulx.load(l2)) {
+                let ret = glulx.load(l3);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JFGE(l1, l2, l3) => {
+            glulx = if op_jfge(glulx.load(l1), glulx.load(l2)) {
+                let ret = glulx.load(l3);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JISNAN(l1, l2) => {
+            glulx = if op_jisnan(glulx.load(l1)) {
+                let ret = glulx.load(l2);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
+        JISINF(l1, l2) => {
+            glulx = if op_jisinf(glulx.load(l1)) {
+                let ret = glulx.load(l2);
+                glulx.offset_ptr(ret)
+            } else {
+                glulx
+            }
+        },
         _ => {},
     }
 }

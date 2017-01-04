@@ -234,11 +234,25 @@ pub enum Opcode {
     /// Return arctan of `f32`.
     ATAN(Load, Save),
     ATAN2(Load, Load, Save),
+
+    /// Jump if the second `f32` is in the range of the first `f32`
+    /// += the third `f32`
     JFEQ(Load, Load, Load, Load),
+
+    /// Jump if the second `f32` is not in the range of the first `f32`
+    /// += the third `f32`
     JFNE(Load, Load, Load, Load),
+
+    /// Jump if the first `f32` is less than the second `f32`.
     JFLT(Load, Load, Load),
+
+    /// Jump if the first `f32` is less than or equal to the second `f32`.
     JFLE(Load, Load, Load),
+
+    /// Jump if the first `f32` is greater than the second `f32`.
     JFGT(Load, Load, Load),
+
+    /// Jump if the first `f32` is greater than or equal to the second `f32`.
     JFGE(Load, Load, Load),
 
     /// Jump if `f32` is `f32::NAN`.
