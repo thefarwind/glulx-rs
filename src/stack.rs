@@ -1,15 +1,7 @@
 use byteorder::{ByteOrder, NativeEndian};
 
 
-pub enum Dest {
-    Null,
-    Memory(u32),
-    Local(u32),
-    Push,
-}
-
-
-pub struct Stack {
+pub struct GlulxStack {
     frame_ptr: u32,
     local_pos: u32,
     frame_len: u32,
@@ -17,50 +9,73 @@ pub struct Stack {
 }
 
 
-impl Stack {
-    pub fn push_frame(mut self, nargs: u32, save: Dest) -> Stack {
-        self
+pub trait Stack<T> {
+    fn push(&mut self, val: T);
+    fn pop(&mut self) -> T;
+    fn peek(&self) -> T;
+    fn read(& self, offset: u32) -> T;
+    fn write(&mut self, offset: u32,  val: T);
+}
+
+
+impl Stack<i32> for GlulxStack {
+    fn push(&mut self, val: i32) {
     }
 
-    pub fn pop_frame(mut self) -> Stack {
-        self
+    fn pop(&mut self) -> i32 {
+        0
+    }
+
+    fn peek(&self) -> i32 {
+        0
+    }
+
+    fn read(&self, offset: u32) -> i32 {
+        0
+    }
+
+    fn write(&mut self, offset: u32, val: i32) {
     }
 }
 
 
+impl Stack<u32> for GlulxStack {
+    fn push(&mut self, val: u32) {
+    }
 
-impl Stack {
-    pub fn read_frame(ptr: u32) -> i32 {
+    fn pop(&mut self) -> u32 {
         0
     }
 
-
-    fn push_call_stub(&mut self,
-        program_counter: u32,
-        dest_type: u32,
-        dest_addr: u32,
-    ) {
-        self.push_u32(program_counter);
-        self.push_u32(dest_type);
-        self.push_u32(dest_addr);
-        let frame_ptr = self.frame_ptr;
-        self.push_u32(frame_ptr);
+    fn peek(&self) -> u32 {
+        0
     }
 
-    fn new_stack_frame(&mut self) {
-        self.frame_ptr = self.stack_ptr();
+    fn read(&self, offset: u32) -> u32 {
+        0
     }
 
-    fn pop_stack_frame(&mut self) {
+    fn write(&mut self, offset: u32, val: u32) {
+    }
+}
+
+
+impl Stack<f32> for GlulxStack {
+    fn push(&mut self, val: f32) {
     }
 
-    fn stack_ptr(&self) -> u32 {
-        self.stack.len() as u32
+    fn pop(&mut self) -> f32 {
+        0.
     }
 
-    fn push_u32(&mut self, val: u32){
-        let mut buf = vec![0x0; 0x4];
-        NativeEndian::write_u32(&mut buf, val);
-        self.stack.append(&mut buf);
+    fn peek(&self) -> f32 {
+        0.
+    }
+
+    fn read(&self, offset: u32) -> f32 {
+        0.
+    }
+
+    fn write(&mut self, offset: u32, val: f32) {
     }
 }

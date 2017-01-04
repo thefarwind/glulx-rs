@@ -1,9 +1,17 @@
-use memory::Memory;
-use stack::Stack;
 use instructions::{
     Load,
     Opcode,
     Save,
+};
+
+use memory::{
+    GlulxMemory,
+    Memory,
+};
+
+use stack::{
+    GlulxStack,
+    Stack,
 };
 
 
@@ -11,8 +19,8 @@ struct Glulx {
     program_counter: u32,
     stack_ptr: u32,
     call_frame_ptr: u32,
-    stack: Stack,
-    memory: Memory,
+    stack: GlulxStack,
+    memory: GlulxMemory,
 }
 
 
@@ -64,11 +72,23 @@ impl Machine<i32> for Glulx {
 
         match load {
             Const(val) => val,
-            _ => 0,
+            Addr(ptr) => self.memory.read(ptr),
+            Pop => self.stack.pop(),
+            Frame(ptr) => self.stack.read(ptr),
+            Ram(ptr) => self.memory.ram_read(ptr),
         }
     }
 
     fn save(&mut self, save: Save, value: i32){
+        use super::instructions::Save::*;
+
+        match save {
+            Null => {},
+            Addr(ptr) => self.memory.write(ptr, value),
+            Push => self.stack.push(value),
+            Frame(ptr) => self.stack.write(ptr, value),
+            Ram(ptr) => self.memory.ram_write(ptr, value),
+        }
     }
 }
 
@@ -79,11 +99,23 @@ impl Machine<u32> for Glulx {
 
         match load {
             Const(val) => panic!("const u32 not supported"),
-            _ => 0,
+            Addr(ptr) => self.memory.read(ptr),
+            Pop => self.stack.pop(),
+            Frame(ptr) => self.stack.read(ptr),
+            Ram(ptr) => self.memory.ram_read(ptr),
         }
     }
 
     fn save(&mut self, save: Save, value: u32){
+        use super::instructions::Save::*;
+
+        match save {
+            Null => {},
+            Addr(ptr) => self.memory.write(ptr, value),
+            Push => self.stack.push(value),
+            Frame(ptr) => self.stack.write(ptr, value),
+            Ram(ptr) => self.memory.ram_write(ptr, value),
+        }
     }
 }
 
@@ -94,11 +126,23 @@ impl Machine<f32> for Glulx {
 
         match load {
             Const(val) => panic!("const f32 not supported"),
-            _ => 0.,
+            Addr(ptr) => self.memory.read(ptr),
+            Pop => self.stack.pop(),
+            Frame(ptr) => self.stack.read(ptr),
+            Ram(ptr) => self.memory.ram_read(ptr),
         }
     }
 
     fn save(&mut self, save: Save, value: f32){
+        use super::instructions::Save::*;
+
+        match save {
+            Null => {},
+            Addr(ptr) => self.memory.write(ptr, value),
+            Push => self.stack.push(value),
+            Frame(ptr) => self.stack.write(ptr, value),
+            Ram(ptr) => self.memory.ram_write(ptr, value),
+        }
     }
 }
 
