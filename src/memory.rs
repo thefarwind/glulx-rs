@@ -64,6 +64,29 @@ impl GlulxMemory {
             return Err("endmem is misaligned".to_string());
         }
 
+        // Validate stack size.
+        let stack_size = BigEndian::read_u32(&rom[0x14..0x18]);
+        if stack_size % 0x100 != 0 {
+            return Err("stack size is misaligned".to_string());
+        }
+
+        if endmem as usize != rom.len() {
+            return Err("rom size is not correct".to_string());
+        }
+
+        let checksum = BigEndian::read_u32(&rom[0x20..0x24]);
+        let sum = {
+            let mut sum = 0u32;
+            for i in 0..rom.len()/4 {
+                sum = sum.wrapping_add(BigEndian::read_u32(&rom[i*4..]));
+            }
+            sum.wrapping_sub(checksum)
+        };
+        if checksum != sum {
+            return Err("rom checksum is not correct".to_string());
+        }
+
+
         let mut rom = rom;
         let ext_size = (endmem - extstart) as usize;
         let size = rom.len() + ext_size;
