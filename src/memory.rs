@@ -12,6 +12,7 @@ const MAX_VERSION: u32 = 0x00301FF;
 
 /// Struct representing a glulx memory object.
 pub struct GlulxMemory {
+    heap_mode: bool,
     memory: Vec<u8>,
 }
 
@@ -69,7 +70,7 @@ impl GlulxMemory {
         rom.reserve_exact(ext_size);
         rom.resize(size, 0x0);
 
-        Ok(GlulxMemory { memory: rom })
+        Ok(GlulxMemory { heap_mode: false, memory: rom })
     }
 
     pub fn zero_range(&mut self, size: u32, ptr: u32){
@@ -135,6 +136,26 @@ impl GlulxMemory {
     /// be `0`.
     fn checksum(&self) -> u32 {
         BigEndian::read_u32(&self.memory[0x20..0x24])
+    }
+
+
+    pub fn get_mem_size(&self) -> u32 {
+        self.memory.len() as u32
+    }
+
+    /// Sets the memory size to the given value. This call only works if
+    /// there is no active heap, the given value is a multiple of 0x100,
+    /// and the value is greater than the ENDMEM value identified in the
+    /// header.
+    pub fn set_mem_size(&mut self, value: u32) -> u32 {
+        if self.heap_mode
+                && value % 0x100 == 0
+                && value >= self.endmem() {
+            self.memory.resize(value as usize, 0x0);
+            0
+        } else {
+            1
+        }
     }
 }
 

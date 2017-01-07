@@ -413,8 +413,15 @@ fn eval(glulx: Glulx, opcode: Opcode) {
         // TODO: STREAMUNICHAR(l1),
         // TODO: GESTALT(l1, l2, s1),
         // TODO: DEBUGTRAP(l1),
-        // TODO: GETMEMSIZE(s1),
-        // TODO: SETMEMSIZE(l1, s1),
+        GETMEMSIZE(s1) => {
+            let ret = glulx.memory.get_mem_size();
+            glulx.save(s1, ret);
+        },
+        SETMEMSIZE(l1, s1) => {
+            let l1 = glulx.load(l1);
+            let ret = glulx.memory.set_mem_size(l1);
+            glulx.save(s1, ret);
+        },
         // TODO: JUMPABS(l1, l2, l3),
         // TODO: RANDOM(l1, s1),
         // TODO: SETRANDOM(s1),
