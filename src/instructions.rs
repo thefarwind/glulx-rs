@@ -73,8 +73,14 @@ pub enum Opcode {
 
     /// Bitwise NOT an `i32`.
     BITNOT(Load, Save),
+
+    /// Bit shift left
     SHIFTL(Load, Load, Save),
+
+    /// Signed bit shift right
     SSHIFTR(Load, Load, Save),
+
+    /// Unsigned bit shift right
     USHIFTR(Load, Load, Save),
 
     /// Jump to a memory address.
