@@ -15,7 +15,7 @@ use stack::{
 };
 
 
-struct Glulx {
+pub struct Glulx {
     program_counter: u32,
     stack_ptr: u32,
     call_frame_ptr: u32,
@@ -53,6 +53,19 @@ fn read(glulx: &Glulx) -> Opcode {
 
 
 impl Glulx {
+    pub fn from_rom(rom: Vec<u8>) -> Result<Glulx, String> {
+        GlulxMemory::from_rom(rom).and_then(|memory| {
+            let stack = GlulxStack::new(memory.stack_size());
+            Ok(Glulx {
+                program_counter: memory.start_func(),
+                stack_ptr: 0,
+                call_frame_ptr: 0,
+                stack: stack,
+                memory: memory,
+            })
+        })
+    }
+
     fn offset_ptr(mut self, ptr: u32) -> Glulx {
         self.program_counter += ptr - 0x2;
         self

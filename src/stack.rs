@@ -9,6 +9,18 @@ pub struct GlulxStack {
 }
 
 
+impl GlulxStack {
+    pub fn new(size: u32) -> GlulxStack {
+        GlulxStack {
+            frame_ptr: 0,
+            local_pos: 0,
+            frame_len: 0,
+            stack: vec![0x0; size as usize],
+        }
+    }
+}
+
+
 pub trait Stack<T> {
     fn push(&mut self, val: T);
     fn pop(&mut self) -> T;

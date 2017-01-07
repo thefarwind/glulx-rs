@@ -6,6 +6,8 @@ mod memory;
 mod opcodes;
 mod stack;
 
+pub use interpreter::Glulx;
+
 #[cfg(test)]
 mod tests {
     #[test]
