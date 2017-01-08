@@ -1,3 +1,44 @@
+//! # Glulx memory mapping
+//!
+//! The Glulx machine memory consists of a ROM and RAM, which themselves
+//! are separated into several different groups.
+//!
+//!
+//! ## Program Provided Values
+//!
+//! The following values are defined by the given program:
+//!
+//! * RAMSTART -- Specifies the starting point of the RAM
+//! * EXTSTART -- Specifies start of zeroed section of RAM
+//! * ENDMEM -- Specifies the ending point of the RAM
+//!
+//!
+//! ## ROM
+//!
+//! The ROM is defined by the following:
+//!
+//! * The ROM ranges from 0x00000000 to RAMSTART.
+//! * The Header ranges from 0x00000000 to 0x00000024.
+//! * The ROM is read-only.
+//! * The ROM must be at least 0x100 bytes long.
+//! * The ROM usually (but not always) contains all the executable code
+//! and constants for the loaded program.
+//!
+//!
+//! ## RAM
+//!
+//! The RAM is defined by the following:
+//!
+//! * The RAM ranges from RAMSTART to ENDMEM
+//! * The RAM from EXTSTART to ENDMEM is initialized to all zeros.
+//! * The RAM can be 0x0 bytes long.
+//!
+//! ## Misc
+//!
+//! * RAMSTART, EXTSTART, and ENDMEM must be aligned on 0x100 byte
+//! boundries
+//! * A Glulx gamefile only stores data from 0x0 to EXTSTART.
+
 use byteorder::{BigEndian, ByteOrder};
 
 
