@@ -129,12 +129,12 @@ impl Glulx {
             0x1 => {
                 let data: u8 = self.memory.read(self.program_counter);
                 self.program_counter += 0x1;
-                Load::Const(data as i32)
+                Load::Const(data as i8 as i32)
             },
             0x2 => {
                 let data: u16 = self.memory.read(self.program_counter);
                 self.program_counter += 0x2;
-                Load::Const(data as i32)
+                Load::Const(data as i16 as i32)
             },
             0x3 => {
                 let data = self.memory.read(self.program_counter);
