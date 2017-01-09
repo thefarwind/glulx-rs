@@ -39,6 +39,14 @@ impl Glulx {
         })
     }
 
+    pub fn run(&mut self) {
+        loop {
+            let opcode = self.fetch();
+            self.eval(opcode);
+
+        }
+    }
+
     /// Offset the current program counter by the given value. An
     /// additional 0x2 is subtracted from the offset.
     fn offset_ptr(&mut self, ptr: u32) {
@@ -107,7 +115,7 @@ impl Glulx {
                 self.program_counter += 0x4;
                 Save::Ram(data)
             },
-            _ => panic!("unrecognized addressing mode {:X}", mode),
+            _ => panic!("unrecognized addressing mode {:#X}", mode),
         }
     }
 
@@ -179,7 +187,7 @@ impl Glulx {
                 self.program_counter += 0x4;
                 Load::Ram(data)
             },
-            _ => panic!("unrecognized addressing mode {:X}", mode),
+            _ => panic!("unrecognized addressing mode {:#X}", mode),
         }
     }
 
@@ -681,7 +689,16 @@ impl Glulx {
 
                 STREAMUNICHAR(l1)
             },
-            // 0x100 => GESTALT
+            0x100 => {
+                let (l1, l2) = self.lo_hi();
+                let (s1, _) = self.lo_hi();
+
+                let l1 = self.load_op_data(l1);
+                let l2 = self.load_op_data(l2);
+                let s1 = self.store_op_data(s1);
+
+                GESTALT(l1, l2, s1)
+            },
             0x101 => {
                 let (l1, _) = self.lo_hi();
 
@@ -1217,7 +1234,7 @@ impl Glulx {
 
                 JISINF(l1, l2)
             },
-            x => panic!("instruction not implemented: {:X}", x),
+            x => panic!("instruction not implemented: {:#X}", x),
         }
     }
 
@@ -1567,7 +1584,7 @@ impl Glulx {
                     self.offset_ptr(ret);
                 }
             },
-            _ => {},
+            x => panic!("opcode not implemented: {:?}", x),
         }
     }
 }
