@@ -1,4 +1,5 @@
 /// Data load location information for an opcode
+#[derive(Debug)]
 pub enum Load {
 
     /// Use contained constant as argument.
@@ -19,6 +20,7 @@ pub enum Load {
 
 
 /// Data save location information for an opcode
+#[derive(Debug)]
 pub enum Save {
 
     /// Discard result.
@@ -39,6 +41,7 @@ pub enum Save {
 
 
 /// Glulx opcodes
+#[derive(Debug)]
 pub enum Opcode {
 
     /// Does nothing.
