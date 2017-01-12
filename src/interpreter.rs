@@ -30,7 +30,7 @@ impl Glulx {
         GlulxMemory::from_rom(rom).and_then(|memory| {
             let stack = GlulxStack::new(memory.stack_size());
             Ok(Glulx {
-                program_counter: memory.start_func(),
+                program_counter: 0,
                 stack_ptr: 0,
                 call_frame_ptr: 0,
                 stack: stack,
@@ -40,10 +40,64 @@ impl Glulx {
     }
 
     pub fn run(&mut self) {
+        let start = self.memory.start_func();
+        self.call(start, 0x0, Save::Null);
         loop {
             let opcode = self.fetch();
             self.eval(opcode);
 
+        }
+    }
+
+    /// Format of locals is a 2*n byte section terminated by two 0 bytes
+    fn call(&mut self, address: u32, nargs: u32, save: Save) {
+        if nargs != 0 {
+            panic!("{:#X} arguments not supported for CALL", nargs)
+        };
+        self.build_call_frame(address, nargs, save)
+    }
+
+    fn callf(&mut self, address: u32, save: Save){
+        self.build_call_frame(address, 0, save)
+    }
+    fn call_one(&mut self, address: u32, arg1: u32, save: Save){
+        unimplemented!();
+        self.build_call_frame(address, 1, save)
+    }
+    fn call_two(&mut self, address: u32, arg1: u32, arg2: u32, save: Save){
+        unimplemented!();
+        self.build_call_frame(address, 2, save)
+    }
+    fn call_three(&mut self, address: u32, arg1: u32, arg2: u32, arg3: u32, save: Save){
+        unimplemented!();
+        self.build_call_frame(address, 3, save)
+    }
+
+    fn build_call_frame(&mut self, address: u32, nargs: u32, save: Save) {
+        let (dest_type, dest_addr) = match save {
+            Save::Null => (0, 0),
+            _ => panic!("save mode not supported"),
+        };
+
+        self.stack.write_call_stub(dest_type, dest_addr, self.program_counter);
+        self.program_counter = address;
+        self.read_func(nargs);
+    }
+
+    fn read_func(&mut self, nargs: u32) {
+        let func_type: u8 = self.memory.read(self.program_counter);
+        self.program_counter += 0x1;
+
+        match func_type {
+            0xC1 => {},
+            0xC0 => {unimplemented!()},
+            _ => panic!("unknown function type recieved: {:#X}", func_type),
+        };
+
+        if let 0x0u16 = self.memory.read(self.program_counter) {
+            self.program_counter += 0x2;
+        } else {
+            panic!("format of locals not terminated with two null bytes")
         }
     }
 
@@ -59,7 +113,7 @@ impl Glulx {
     fn lo_hi(&mut self) -> (u8, u8) {
         let bytes: u8 = self.memory.read(self.program_counter);
         self.program_counter += 0x1;
-        (bytes & 0x0F, bytes & 0xF0 >> 0x4)
+        (bytes & 0x0F, (bytes & 0xF0) >> 0x4)
     }
 
     /// Takes a number indicating a type of store action and uses that
@@ -137,7 +191,7 @@ impl Glulx {
                 Load::Const(data as i16 as i32)
             },
             0x3 => {
-                let data = self.memory.read(self.program_counter);
+                let data: i32 = self.memory.read(self.program_counter);
                 self.program_counter += 0x4;
                 Load::Const(data)
             },
@@ -1368,7 +1422,11 @@ impl Glulx {
                     self.offset_ptr(nxt);
                 }
             },
-            // TODO: CALL(l1, l2, s1),
+            CALL(l1, l2, s1) => {
+                let l1 = self.load(l1);
+                let l2 = self.load(l2);
+                self.call(l1, l2, s1);
+            },
             // TODO: RETURN(l1),
             // TODO: CATCH(s1, l1),
             // TODO: THROW(l1, l2),
@@ -1440,7 +1498,10 @@ impl Glulx {
             // TODO: LINEARSEARCH(l1, l2, l3, l4, l5, l6, l7, s1),
             // TODO: BINARYSEARCH(l1, l2, l3, l4, l5, l6, l7, s1),
             // TODO: LINKEDSEARCH(l1, l2, l3, l4, l5, l6, s1),
-            // TODO: CALLF(l1, s1),
+            CALLF(l1, s1) => {
+                let l1 = self.load(l1);
+                self.callf(l1, s1);
+            }
             // TODO: CALLFI(l1, l2, s1),
             // TODO: CALLFII(l1, l2, l3, s1),
             // TODO: CALLFIII(l1, l2, l3, l4, s1),
@@ -1682,7 +1743,7 @@ impl Machine<u32> for Glulx {
         use super::instructions::Load::*;
 
         match load {
-            Const(val) => panic!("const u32 not supported"),
+            Const(val) => val as u32,
             Addr(ptr) => self.memory.read(ptr),
             Pop => self.stack.pop(),
             Frame(ptr) => self.stack.read(ptr),

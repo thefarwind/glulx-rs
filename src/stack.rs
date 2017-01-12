@@ -18,6 +18,17 @@ impl GlulxStack {
             stack: vec![0x0; size as usize],
         }
     }
+
+    pub fn write_call_stub(&mut self,
+            dest_type: u32,
+            dest_addr: u32,
+            program_counter: u32) {
+        self.push(dest_type);
+        self.push(dest_addr);
+        self.push(program_counter);
+        let frame_ptr = self.frame_ptr;
+        self.push(frame_ptr);
+    }
 }
 
 
@@ -31,17 +42,25 @@ pub trait Stack<T> {
 
 
 impl Stack<u8> for GlulxStack {
-    // TODO: Convert to u32 and push
+
+    /// take a `u8` and push onto the stack as a `u32`.
     fn push(&mut self, val: u8) {
+        let pos = self.stack.len();
+        for _ in 0x0..0x4 { self.stack.push(0) };
+        NativeEndian::write_u32(&mut self.stack[pos..], val as u32);
     }
 
-    // TODO: Pop u32 and return as u8
+    /// pop a `u32` and return as a `u8`.
     fn pop(&mut self) -> u8 {
-        0
+        let pos = self.stack.len() - 0x4;
+        let ret = NativeEndian::read_u32(&self.stack[pos..]);
+        for _ in 0x0..0x4 { self.stack.pop(); };
+        ret as u8
     }
 
     fn peek(&self) -> u8 {
-        0
+        let pos = self.stack.len() - 0x4;
+        NativeEndian::read_u32(&self.stack[pos..]) as u8
     }
 
     fn read(&self, offset: u32) -> u8 {
@@ -55,17 +74,25 @@ impl Stack<u8> for GlulxStack {
 
 
 impl Stack<u16> for GlulxStack {
-    // TODO: Convert to u32 and push
+
+    /// take a `u16` and push onto the stack as a `u32`.
     fn push(&mut self, val: u16) {
+        let pos = self.stack.len();
+        for _ in 0x0..0x4 { self.stack.push(0) };
+        NativeEndian::write_u32(&mut self.stack[pos..], val as u32);
     }
 
-    // TODO: Pop u32 and return as u16
+    /// pop a `u32` and return as a `u16`.
     fn pop(&mut self) -> u16 {
-        0
+        let pos = self.stack.len() - 0x4;
+        let ret = NativeEndian::read_u32(&self.stack[pos..]);
+        for _ in 0x0..0x4 { self.stack.pop(); };
+        ret as u16
     }
 
     fn peek(&self) -> u16 {
-        0
+        let pos = self.stack.len() - 0x4;
+        NativeEndian::read_u32(&self.stack[pos..]) as u16
     }
 
     fn read(&self, offset: u32) -> u16 {
@@ -80,14 +107,21 @@ impl Stack<u16> for GlulxStack {
 
 impl Stack<i32> for GlulxStack {
     fn push(&mut self, val: i32) {
+        let pos = self.stack.len();
+        for _ in 0x0..0x4 { self.stack.push(0) };
+        NativeEndian::write_i32(&mut self.stack[pos..], val);
     }
 
     fn pop(&mut self) -> i32 {
-        0
+        let pos = self.stack.len() - 0x4;
+        let ret = NativeEndian::read_i32(&self.stack[pos..]);
+        for _ in 0x0..0x4 { self.stack.pop(); };
+        ret
     }
 
     fn peek(&self) -> i32 {
-        0
+        let pos = self.stack.len() - 0x4;
+        NativeEndian::read_i32(&self.stack[pos..])
     }
 
     fn read(&self, offset: u32) -> i32 {
@@ -101,14 +135,21 @@ impl Stack<i32> for GlulxStack {
 
 impl Stack<u32> for GlulxStack {
     fn push(&mut self, val: u32) {
+        let pos = self.stack.len();
+        for _ in 0x0..0x4 { self.stack.push(0) };
+        NativeEndian::write_u32(&mut self.stack[pos..], val);
     }
 
     fn pop(&mut self) -> u32 {
-        0
+        let pos = self.stack.len() - 0x4;
+        let ret = NativeEndian::read_u32(&self.stack[pos..]);
+        for _ in 0x0..0x4 { self.stack.pop(); };
+        ret
     }
 
     fn peek(&self) -> u32 {
-        0
+        let pos = self.stack.len() - 0x4;
+        NativeEndian::read_u32(&self.stack[pos..])
     }
 
     fn read(&self, offset: u32) -> u32 {
@@ -121,15 +162,24 @@ impl Stack<u32> for GlulxStack {
 
 
 impl Stack<f32> for GlulxStack {
+    /// push a `f32` onto the stack.
     fn push(&mut self, val: f32) {
+        let pos = self.stack.len();
+        for _ in 0x0..0x4 { self.stack.push(0) };
+        NativeEndian::write_f32(&mut self.stack[pos..], val);
     }
 
+    /// pop a `f32` off the stack.
     fn pop(&mut self) -> f32 {
-        0.
+        let pos = self.stack.len() - 0x4;
+        let ret = NativeEndian::read_f32(&self.stack[pos..]);
+        for _ in 0x0..0x4 { self.stack.pop(); };
+        ret
     }
 
     fn peek(&self) -> f32 {
-        0.
+        let pos = self.stack.len() - 0x4;
+        NativeEndian::read_f32(&self.stack[pos..])
     }
 
     fn read(&self, offset: u32) -> f32 {
