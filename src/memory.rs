@@ -130,9 +130,8 @@ impl GlulxMemory {
 
         let mut rom = rom;
         let ext_size = (endmem - extstart) as usize;
-        let size = rom.len() + ext_size;
         rom.reserve_exact(ext_size);
-        rom.resize(size, 0x0);
+        rom.resize(endmem as usize, 0x0);
 
         Ok(GlulxMemory { heap_mode: false, memory: rom })
     }
@@ -165,7 +164,7 @@ impl GlulxMemory {
     /// First two bytes store the major version number. The next byte
     /// stores the minor version number. The final byte stores the patch
     /// version number.
-    fn glulx_version(&self) -> u32 {
+    pub fn glulx_version(&self) -> u32 {
         BigEndian::read_u32(&self.memory[0x4..0x8])
     }
 

@@ -101,7 +101,7 @@ impl GlulxStack {
             match local_type {
                 1 => {
                     for _ in 0x0..local_count {
-                        if args.len() == 0 {
+                        if args.len() != 0 {
                             self.push(args.pop().unwrap() as u8);
                         } else {
                             self.push(0x0u8);
@@ -111,7 +111,7 @@ impl GlulxStack {
                 2 => {
                     if self.stack.len() & 0x1  != 0 { self.stack.push(0x0) };
                     for _ in 0x0..local_count {
-                        if args.len() == 0 {
+                        if args.len() != 0 {
                             self.push(args.pop().unwrap() as u16);
                         } else {
                             self.push(0x0u16);
@@ -123,7 +123,7 @@ impl GlulxStack {
                         self.push(0x0);
                     };
                     for _ in 0x0..local_count {
-                        if args.len() == 0 {
+                        if args.len() != 0 {
                             self.push(args.pop().unwrap());
                         } else {
                             self.push(0x0u32);

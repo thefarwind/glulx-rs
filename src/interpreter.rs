@@ -168,6 +168,27 @@ impl Glulx {
         self.save(save, val);
     }
 
+    fn gestalt(&self, selector: u16, arg: u16) -> u32 {
+        match (selector, arg) {
+            (0x0, _) => self.memory.glulx_version(),
+            (0x1, _) => 0x1, // interpreter version
+            (0x2, _) => 0x1, // setmemsize implemented
+            (0x3, _) => 0x0, // saveundo and restoreundo implemented
+            (0x4, 0x0) => 0x1, // iosystem null implemented
+            (0x4, 0x1) => 0x0, // iosystem filter implemented
+            (0x4, 0x2) => 0x0, // iosystem gtk implemented
+            (0x4, 0x20) => 0x0, // iosystem fyrevm implemented
+            (0x5, _) => 0x0, // unicode support implemented
+            (0x6, _) => 0x1, // mzero and mcopy implemented
+            (0x7, _) => 0x0, // malloc and mfree implemented
+            (0x8, _) => 0x0, // accelfunc and accelparam implemented
+            (0x9, _) => 0x0, // heap start address implemented
+            (0xA, x) => 0x0, // accelfunc `x`  implemented
+            (0xB, _) => 0x1, // float implemented
+            _ => 0x0
+        }
+    }
+
     /// Offset the current program counter by the given value. An
     /// additional 0x2 is subtracted from the offset.
     fn offset_ptr(&mut self, ptr: u32) {
@@ -1546,7 +1567,11 @@ impl Glulx {
             // TODO: STREAMNUM(l1),
             // TODO: STREAMSTR(l1),
             // TODO: STREAMUNICHAR(l1),
-            // TODO: GESTALT(l1, l2, s1),
+            GESTALT(l1, l2, s1) => {
+                let (l1, l2) = (self.load(l1), self.load(l2));
+                let ret = self.gestalt(l1, l2);
+                self.save(s1, ret)
+            },
             // TODO: DEBUGTRAP(l1),
             GETMEMSIZE(s1) => {
                 let ret = self.memory.get_mem_size();
