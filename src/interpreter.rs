@@ -1521,7 +1521,11 @@ impl Glulx {
                 let ret = op_sexs(self.load(l1));
                 self.save(s1, ret);
             },
-            // TODO: ALOAD(l1, l2, s1),
+            ALOAD(l1, l2, s1) => {
+                let (l1, l2): (u32, u32) = (self.load(l1), self.load(l2));
+                let ret: u32 = self.memory.read(l1 + 4*l2);
+                self.save(s1, ret);
+            },
             // TODO: ALOADS(l1, l2, s1),
             // TODO: ALOADB(l1, l2, s1),
             // TODO: ALOADBIT(l1, l2, s1),
