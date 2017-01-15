@@ -1500,7 +1500,11 @@ impl Glulx {
             // TODO: ALOADS(l1, l2, s1),
             // TODO: ALOADB(l1, l2, s1),
             // TODO: ALOADBIT(l1, l2, s1),
-            // TODO: ASTORE(l1, l2, l3),
+            ASTORE(l1, l2, l3) => {
+                let address = op_astore(self.load(l1), self.load(l2));
+                let l3: u32 = self.load(l3);
+                self.memory.write(address, l3)
+            },
             // TODO: ASTORES(l1, l2, l3),
             // TODO: ASTOREB(l1, l2, l3),
             // TODO: ASTOREBIT(l1, l2, l3),

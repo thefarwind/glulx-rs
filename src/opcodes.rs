@@ -42,7 +42,9 @@ pub fn op_aload
 pub fn op_aloads
 pub fn op_aloadb
 pub fn op_aloadbit
-pub fn op_astore
+*/
+pub fn op_astore(l1: u32, l2: u32) -> u32 { l1 + (l2 << 0x2) }
+/*
 pub fn op_astores
 pub fn op_astoreb
 pub fn op_astorebit
