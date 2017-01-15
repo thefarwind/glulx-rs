@@ -39,6 +39,7 @@ impl Glulx {
         })
     }
 
+    /// Run the glulx machine until completion
     pub fn run(&mut self) {
         let start = self.memory.start_func();
         self.call(start, 0x0, Save::Null);
@@ -49,55 +50,99 @@ impl Glulx {
         }
     }
 
-    /// Format of locals is a 2*n byte section terminated by two 0 bytes
-    fn call(&mut self, address: u32, nargs: u32, save: Save) {
-        if nargs != 0 {
-            panic!("{:#X} arguments not supported for CALL", nargs)
-        };
-        self.build_call_frame(address, nargs, save)
+    /// Call a function with nargs off the stack.
+    fn call(&mut self,
+            address: u32,
+            nargs: u32,
+            save: Save) {
+        let args = self.stack.pop_args(nargs);
+        self.push_call_stub(save);
+        self.call_func(address, args);
     }
 
-    fn callf(&mut self, address: u32, save: Save){
-        self.build_call_frame(address, 0, save)
-    }
-    fn call_one(&mut self, address: u32, arg1: u32, save: Save){
-        unimplemented!();
-        self.build_call_frame(address, 1, save)
-    }
-    fn call_two(&mut self, address: u32, arg1: u32, arg2: u32, save: Save){
-        unimplemented!();
-        self.build_call_frame(address, 2, save)
-    }
-    fn call_three(&mut self, address: u32, arg1: u32, arg2: u32, arg3: u32, save: Save){
-        unimplemented!();
-        self.build_call_frame(address, 3, save)
+    /// Call a function with no arguments.
+    fn callf(&mut self,
+            address: u32,
+            save: Save) {
+        self.push_call_stub(save);
+        self.call_func(address, vec![]);
     }
 
-    fn build_call_frame(&mut self, address: u32, nargs: u32, save: Save) {
+    /// Call a function with one input argument.
+    fn callfi(&mut self,
+            address: u32,
+            arg1: u32,
+            save: Save) {
+        self.push_call_stub(save);
+        self.call_func(address, vec![arg1]);
+    }
+
+    /// Call a function with two input arguments.
+    fn callfii(&mut self,
+            address: u32,
+            arg1: u32,
+            arg2: u32,
+            save: Save) {
+        self.push_call_stub(save);
+        self.call_func(address, vec![arg1, arg2]);
+    }
+
+    /// Call a function with three input arguments.
+    fn callfiii(&mut self,
+            address: u32,
+            arg1: u32,
+            arg2: u32,
+            arg3: u32,
+            save: Save) {
+        self.push_call_stub(save);
+        self.call_func(address, vec![arg1, arg2, arg3]);
+    }
+
+    /// Parses the save location to determine the destination type and
+    /// address, and then pushes that information (along with the
+    /// current program counter value) onto the stack.
+    fn push_call_stub(&mut self, save: Save) {
         let (dest_type, dest_addr) = match save {
             Save::Null => (0, 0),
-            _ => panic!("save mode not supported"),
+            Save::Addr(addr) => (1, addr),
+            Save::Frame(addr) => (2, addr),
+            Save::Push => (3, 0),
+            x => panic!("save mode not supported: {:?}", x),
         };
-
-        self.stack.write_call_stub(dest_type, dest_addr, self.program_counter);
-        self.program_counter = address;
-        self.read_func(nargs);
+        self.stack.push_call_stub(dest_type, dest_addr, self.program_counter);
     }
 
-    fn read_func(&mut self, nargs: u32) {
+    fn call_func(&mut self, address: u32, args: Vec<u32>) {
+        self.program_counter = address;
+
         let func_type: u8 = self.memory.read(self.program_counter);
         self.program_counter += 0x1;
 
-        match func_type {
-            0xC1 => {},
-            0xC0 => {unimplemented!()},
-            _ => panic!("unknown function type recieved: {:#X}", func_type),
-        };
+        let locals = self.read_locals();
 
-        if let 0x0u16 = self.memory.read(self.program_counter) {
+        match func_type {
+            0xC0 => self.stack.push_call_frame_c0(locals, args),
+            0xC1 => self.stack.push_call_frame_c1(locals, args),
+            _ => panic!("unsupported function type called"),
+
+        }
+    }
+
+    fn read_locals(&mut self) -> Vec<u8> {
+        let mut vec = Vec::new();
+
+        loop {
+            let (local_type, local_count) = (
+                self.memory.read(self.program_counter),
+                self.memory.read(self.program_counter + 0x1),
+            );
             self.program_counter += 0x2;
-        } else {
-            panic!("format of locals not terminated with two null bytes")
+            vec.push(local_type);
+            vec.push(local_count);
+
+            if let (0, 0) = (local_type, local_count) {
+                return vec;
+            }
         }
     }
 
