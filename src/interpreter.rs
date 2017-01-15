@@ -128,6 +128,7 @@ impl Glulx {
         }
     }
 
+    /// Loops through the loals and return a copy of them.
     fn read_locals(&mut self) -> Vec<u8> {
         let mut vec = Vec::new();
 
@@ -144,6 +145,27 @@ impl Glulx {
                 return vec;
             }
         }
+    }
+
+    fn op_return(&mut self, val: u32) {
+        self.stack.pop_call_frame();
+        let (
+            dest_type,
+            dest_addr,
+            program_counter,
+        ) = self.stack.pop_call_stub();
+
+        self.program_counter = program_counter;
+
+        let save = match dest_type {
+            0x0 => Save::Null,
+            0x1 => Save::Addr(dest_addr),
+            0x2 => Save::Frame(dest_addr),
+            0x3 => Save::Push,
+            x => panic!("invalid dest_type returned from stack: {:#X}", x),
+        };
+
+        self.save(save, val);
     }
 
     /// Offset the current program counter by the given value. An
@@ -1472,7 +1494,10 @@ impl Glulx {
                 let l2 = self.load(l2);
                 self.call(l1, l2, s1);
             },
-            // TODO: RETURN(l1),
+            RETURN(l1) => {
+                let l1 = self.load(l1);
+                self.op_return(l1);
+            },
             // TODO: CATCH(s1, l1),
             // TODO: THROW(l1, l2),
             // TODO: TAILCALL(l1, l2),
@@ -1551,9 +1576,27 @@ impl Glulx {
                 let l1 = self.load(l1);
                 self.callf(l1, s1);
             }
-            // TODO: CALLFI(l1, l2, s1),
-            // TODO: CALLFII(l1, l2, l3, s1),
-            // TODO: CALLFIII(l1, l2, l3, l4, s1),
+            CALLFI(l1, l2, s1) => {
+                let l1 = self.load(l1);
+                let l2 = self.load(l2);
+
+                self.callfi(l1, l2, s1);
+            },
+            CALLFII(l1, l2, l3, s1) => {
+                let l1 = self.load(l1);
+                let l2 = self.load(l2);
+                let l3 = self.load(l3);
+
+                self.callfii(l1, l2, l3, s1);
+            },
+            CALLFIII(l1, l2, l3, l4, s1) => {
+                let l1 = self.load(l1);
+                let l2 = self.load(l2);
+                let l3 = self.load(l3);
+                let l4 = self.load(l4);
+
+                self.callfiii(l1, l2, l3, l4, s1);
+            },
             MZERO(l1, l2) => {
                 let l1 = self.load(l1);
                 let l2 = self.load(l2);
@@ -1713,7 +1756,10 @@ impl Machine<u8> for Glulx {
         match load {
             Const(val) => val as u8,
             Addr(ptr) => self.memory.read(ptr),
-            Pop => self.stack.pop(),
+            Pop => {
+                let val: u32 = self.stack.pop();
+                val as u8
+            },
             Frame(ptr) => self.stack.read(ptr),
             Ram(ptr) => self.memory.ram_read(ptr),
         }
@@ -1725,7 +1771,7 @@ impl Machine<u8> for Glulx {
         match save {
             Null => {},
             Addr(ptr) => self.memory.write(ptr, value),
-            Push => self.stack.push(value),
+            Push => self.stack.push(value as u32),
             Frame(ptr) => self.stack.write(ptr, value),
             Ram(ptr) => self.memory.ram_write(ptr, value),
         }
@@ -1740,7 +1786,10 @@ impl Machine<u16> for Glulx {
         match load {
             Const(val) => val as u16,
             Addr(ptr) => self.memory.read(ptr),
-            Pop => self.stack.pop(),
+            Pop => {
+                let val: u32 = self.stack.pop();
+                val as u16
+            },
             Frame(ptr) => self.stack.read(ptr),
             Ram(ptr) => self.memory.ram_read(ptr),
         }
@@ -1752,7 +1801,7 @@ impl Machine<u16> for Glulx {
         match save {
             Null => {},
             Addr(ptr) => self.memory.write(ptr, value),
-            Push => self.stack.push(value),
+            Push => self.stack.push(value as u32),
             Frame(ptr) => self.stack.write(ptr, value),
             Ram(ptr) => self.memory.ram_write(ptr, value),
         }

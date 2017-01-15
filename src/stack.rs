@@ -3,8 +3,6 @@ use byteorder::{ByteOrder, NativeEndian};
 
 pub struct GlulxStack {
     frame_ptr: u32,
-    local_pos: u32,
-    frame_len: u32,
     stack: Vec<u8>,
 }
 
@@ -13,8 +11,6 @@ impl GlulxStack {
     pub fn new(size: u32) -> GlulxStack {
         GlulxStack {
             frame_ptr: 0x0,
-            local_pos: 0x0,
-            frame_len: 0x0,
             stack: vec![0x0; size as usize],
         }
     }
@@ -28,6 +24,23 @@ impl GlulxStack {
         self.push(program_counter);
         let frame_ptr = self.frame_ptr;
         self.push(frame_ptr);
+    }
+
+    pub fn pop_call_stub(&mut self) -> (u32, u32, u32) {
+        self.frame_ptr = self.pop();
+
+        let (
+            program_counter,
+            dest_addr,
+            dest_type,
+        ) = (self.pop(), self.pop(), self.pop());
+
+        (dest_type, dest_addr, program_counter)
+    }
+
+    pub fn pop_call_frame(&mut self) {
+        let frame_ptr = self.frame_ptr;
+        self.stack.resize(frame_ptr as usize, 0x0);
     }
 
     pub fn push_call_frame_c0(&mut self,
@@ -65,27 +78,69 @@ impl GlulxStack {
             args: Vec<u32>) {
         self.frame_ptr = self.stack.len() as u32;
 
-        if locals.len() > 0x2 { unimplemented!() };
+        /// placeholder values
+        self.push(0x0u32);
+        self.push(0x0u32);
 
-        let locals_len: u32 = locals.chunks(0x2)
-            .map(|pair| pair.into_iter()
-                .map(|&val| val as u32)
-                .product::<u32>())
-            .sum();
+        self.stack.extend(locals.clone());
 
-        let mut locals = locals;
-        if locals.len() & 0x3 != 0 {
-            locals.push(0x0);
-            locals.push(0x0);
+        while self.stack.len() & 0x3 != 0 {
+            self.stack.push(0x0);
         }
-        let locals = locals;
 
-        let local_pos = locals.len() as u32;
-        let frame_len = local_pos + locals_len;
+        let local_pos = self.stack.len() as u32;
+        NativeEndian::write_u32(
+            &mut self.stack[self.frame_ptr as usize + 0x4..],
+            local_pos);
 
-        self.push(frame_len);
-        self.push(local_pos);
-        self.stack.extend(locals);
+
+        let mut args = args;
+        for pair in locals.chunks(0x2) {
+            let (local_type, local_count) = (pair[0], pair[1]);
+
+            match local_type {
+                1 => {
+                    for _ in 0x0..local_count {
+                        if args.len() == 0 {
+                            self.push(args.pop().unwrap() as u8);
+                        } else {
+                            self.push(0x0u8);
+                        }
+                    }
+                },
+                2 => {
+                    if self.stack.len() & 0x1  != 0 { self.stack.push(0x0) };
+                    for _ in 0x0..local_count {
+                        if args.len() == 0 {
+                            self.push(args.pop().unwrap() as u16);
+                        } else {
+                            self.push(0x0u16);
+                        }
+                    }
+                }
+                4 => {
+                    while self.stack.len() & 0x3  != 0x0 {
+                        self.push(0x0);
+                    };
+                    for _ in 0x0..local_count {
+                        if args.len() == 0 {
+                            self.push(args.pop().unwrap());
+                        } else {
+                            self.push(0x0u32);
+                        }
+                    }
+                },
+                _ => {},
+            }
+        }
+        let args = args;
+
+        while self.stack.len() & 0x3 != 0x0 { self.push(0x0) };
+
+        let frame_len = self.stack.len() as u32;
+        NativeEndian::write_u32(
+            &mut self.stack[self.frame_ptr as usize..],
+            frame_len);
     }
 
     pub fn pop_args(&mut self, nargs: u32) -> Vec<u32> {
@@ -109,19 +164,14 @@ pub trait Stack<T> {
 
 impl Stack<u8> for GlulxStack {
 
-    /// take a `u8` and push onto the stack as a `u32`.
+    /// take a `u8` and push onto the stack.
     fn push(&mut self, val: u8) {
-        let pos = self.stack.len();
-        for _ in 0x0..0x4 { self.stack.push(0) };
-        NativeEndian::write_u32(&mut self.stack[pos..], val as u32);
+        self.stack.push(val);
     }
 
-    /// pop a `u32` and return as a `u8`.
+    /// pop a `u8` from the stack.
     fn pop(&mut self) -> u8 {
-        let pos = self.stack.len() - 0x4;
-        let ret = NativeEndian::read_u32(&self.stack[pos..]);
-        for _ in 0x0..0x4 { self.stack.pop(); };
-        ret as u8
+        self.stack.pop().unwrap()
     }
 
     fn peek(&self) -> u8 {
@@ -141,24 +191,24 @@ impl Stack<u8> for GlulxStack {
 
 impl Stack<u16> for GlulxStack {
 
-    /// take a `u16` and push onto the stack as a `u32`.
+    /// take a `u16` and push onto the stack.
     fn push(&mut self, val: u16) {
         let pos = self.stack.len();
         for _ in 0x0..0x4 { self.stack.push(0) };
-        NativeEndian::write_u32(&mut self.stack[pos..], val as u32);
+        NativeEndian::write_u16(&mut self.stack[pos..], val);
     }
 
-    /// pop a `u32` and return as a `u16`.
+    /// pop a `u16` from the stack.
     fn pop(&mut self) -> u16 {
-        let pos = self.stack.len() - 0x4;
-        let ret = NativeEndian::read_u32(&self.stack[pos..]);
-        for _ in 0x0..0x4 { self.stack.pop(); };
-        ret as u16
+        let pos = self.stack.len() - 0x2;
+        let ret = NativeEndian::read_u16(&self.stack[pos..]);
+        for _ in 0x0..0x2 { self.stack.pop(); };
+        ret
     }
 
     fn peek(&self) -> u16 {
-        let pos = self.stack.len() - 0x4;
-        NativeEndian::read_u32(&self.stack[pos..]) as u16
+        let pos = self.stack.len() - 0x2;
+        NativeEndian::read_u16(&self.stack[pos..])
     }
 
     fn read(&self, offset: u32) -> u16 {
