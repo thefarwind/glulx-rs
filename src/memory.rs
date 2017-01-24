@@ -251,6 +251,26 @@ impl Memory<u8> for GlulxMemory {
     }
 }
 
+impl Memory<i8> for GlulxMemory {
+    fn read(&self, ptr: u32) -> i8 {
+        self.memory[ptr as usize] as i8
+    }
+
+    fn write(&mut self, ptr: u32, value: i8) {
+        self.memory[ptr as usize] = value as u8
+    }
+
+    fn ram_read(&self, ptr: u32) -> i8 {
+        let ptr = (ptr + self.ramstart()) as usize;
+        self.memory[ptr] as i8
+    }
+
+    fn ram_write(&mut self, ptr: u32, value: i8) {
+        let ptr = (ptr + self.ramstart()) as usize;
+        self.memory[ptr] = value as u8
+    }
+}
+
 impl Memory<u16> for GlulxMemory {
     fn read(&self, ptr: u32) -> u16 {
         BigEndian::read_u16(&self.memory[ptr as usize..])
@@ -268,6 +288,26 @@ impl Memory<u16> for GlulxMemory {
     fn ram_write(&mut self, ptr: u32, value: u16) {
         let ptr = (ptr + self.ramstart()) as usize;
         BigEndian::write_u16(&mut self.memory[ptr..], value)
+    }
+}
+
+impl Memory<i16> for GlulxMemory {
+    fn read(&self, ptr: u32) -> i16 {
+        BigEndian::read_i16(&self.memory[ptr as usize..])
+    }
+
+    fn write(&mut self, ptr: u32, value: i16) {
+        BigEndian::write_i16(&mut self.memory[ptr as usize..], value)
+    }
+
+    fn ram_read(&self, ptr: u32) -> i16 {
+        let ptr = (ptr + self.ramstart()) as usize;
+        BigEndian::read_i16(&self.memory[ptr..])
+    }
+
+    fn ram_write(&mut self, ptr: u32, value: i16) {
+        let ptr = (ptr + self.ramstart()) as usize;
+        BigEndian::write_i16(&mut self.memory[ptr..], value)
     }
 }
 
