@@ -45,11 +45,14 @@ use byteorder::{BigEndian, ByteOrder};
 /// Glulx magic number
 const MAGIC_NUMBER: u32 = 0x476C756C;
 
+
 /// Minimum supported glulx target
 const MIN_VERSION: u32 = 0x0020000;
 
+
 /// Maximum supported glulx target
 const MAX_VERSION: u32 = 0x00301FF;
+
 
 /// Struct representing a glulx memory object.
 pub struct GlulxMemory {
@@ -251,6 +254,7 @@ impl Memory<u8> for GlulxMemory {
     }
 }
 
+
 impl Memory<i8> for GlulxMemory {
     fn read(&self, ptr: u32) -> i8 {
         self.memory[ptr as usize] as i8
@@ -270,6 +274,7 @@ impl Memory<i8> for GlulxMemory {
         self.memory[ptr] = value as u8
     }
 }
+
 
 impl Memory<u16> for GlulxMemory {
     fn read(&self, ptr: u32) -> u16 {
@@ -291,6 +296,7 @@ impl Memory<u16> for GlulxMemory {
     }
 }
 
+
 impl Memory<i16> for GlulxMemory {
     fn read(&self, ptr: u32) -> i16 {
         BigEndian::read_i16(&self.memory[ptr as usize..])
@@ -310,6 +316,7 @@ impl Memory<i16> for GlulxMemory {
         BigEndian::write_i16(&mut self.memory[ptr..], value)
     }
 }
+
 
 impl Memory<u32> for GlulxMemory {
     fn read(&self, ptr: u32) -> u32 {
@@ -331,6 +338,7 @@ impl Memory<u32> for GlulxMemory {
     }
 }
 
+
 impl Memory<i32> for GlulxMemory {
     fn read(&self, ptr: u32) -> i32 {
         BigEndian::read_i32(&self.memory[ptr as usize..])
@@ -350,6 +358,7 @@ impl Memory<i32> for GlulxMemory {
         BigEndian::write_i32(&mut self.memory[ptr..], value)
     }
 }
+
 
 impl Memory<f32> for GlulxMemory {
     fn read(&self, ptr: u32) -> f32 {
