@@ -1,9 +1,7 @@
 extern crate byteorder;
 
 mod interpreter;
-mod instructions;
 mod memory;
-mod opcodes;
 mod stack;
 
 pub use interpreter::Glulx;
