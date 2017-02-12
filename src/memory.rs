@@ -111,7 +111,7 @@ impl GlulxMemory {
             return Err("stack size is misaligned".to_string());
         }
 
-        if endmem as usize >= rom.len() {
+        if (endmem as usize) < rom.len() {
             return Err("rom size is not correct".to_string());
         }
 
