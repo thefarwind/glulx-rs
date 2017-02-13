@@ -364,11 +364,13 @@ impl Glulx {
     }
     /// TODO
     pub fn op_getmemsize(&mut self, s1: Save) {
-        unimplemented!()
+        let mem_size = self.memory.get_mem_size();
+        self.save(s1, mem_size)
     }
     /// TODO
     pub fn op_setmemsize(&mut self, l1: u32, s1: Save) {
-        unimplemented!()
+        let mem_resized = self.memory.set_mem_size(l1);
+        self.save(s1, mem_resized)
     }
     /// Jump to address l1 without treating it like an offset.
     pub fn op_jumpabs(&mut self, l1: u32) {
