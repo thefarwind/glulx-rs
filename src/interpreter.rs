@@ -354,7 +354,7 @@ impl Glulx {
             (0x9, _) => 0x0, // heap start address implemented
             (0xA, x) => 0x0, // accelfunc `x` implemented
             (0xB, _) => 0x1, // float implemented
-            _ => 0x0
+            _ => 0x0, // default to 0x0
         };
         self.save(s1, ret)
     }

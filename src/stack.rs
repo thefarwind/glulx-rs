@@ -88,7 +88,7 @@ impl GlulxStack {
             self.stack.push(0x0);
         }
 
-        let local_pos = self.stack.len() as u32;
+        let local_pos = self.stack.len() as u32 - self.frame_ptr;
         NativeEndian::write_u32(
             &mut self.stack[self.frame_ptr as usize + 0x4..],
             local_pos);
@@ -150,6 +150,10 @@ impl GlulxStack {
         }
         vec
     }
+
+    pub fn local_pos(&self) -> u32 {
+        NativeEndian::read_u32(&self.stack[(self.frame_ptr as usize + 0x4)..])
+    }
 }
 
 
@@ -180,12 +184,14 @@ impl Stack<u8> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u8 {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        self.stack[pos]
     }
 
     // Writes a u8 as normal
     fn write(&mut self, offset: u32, val: u8) {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        self.stack[pos] = val;
     }
 }
 
@@ -213,12 +219,14 @@ impl Stack<u16> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u16 {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::read_u16(&self.stack[pos..])
     }
 
     // Writes a u16 as normal
     fn write(&mut self, offset: u32, val: u16) {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::write_u16(&mut self.stack[pos..], val)
     }
 }
 
@@ -243,11 +251,13 @@ impl Stack<i32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> i32 {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::read_i32(&self.stack[pos..])
     }
 
     fn write(&mut self, offset: u32, val: i32) {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::write_i32(&mut self.stack[pos..], val)
     }
 }
 
@@ -272,11 +282,13 @@ impl Stack<u32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u32 {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::read_u32(&self.stack[pos..])
     }
 
     fn write(&mut self, offset: u32, val: u32) {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::write_u32(&mut self.stack[pos..], val)
     }
 }
 
@@ -303,10 +315,12 @@ impl Stack<f32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> f32 {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::read_f32(&self.stack[pos..])
     }
 
     fn write(&mut self, offset: u32, val: f32) {
-        unimplemented!()
+        let pos = (self.frame_ptr + self.local_pos() + offset) as usize;
+        NativeEndian::write_f32(&mut self.stack[pos..], val)
     }
 }
