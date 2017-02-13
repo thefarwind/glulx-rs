@@ -180,11 +180,12 @@ impl Stack<u8> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u8 {
-        0
+        unimplemented!()
     }
 
     // Writes a u8 as normal
     fn write(&mut self, offset: u32, val: u8) {
+        unimplemented!()
     }
 }
 
@@ -212,11 +213,12 @@ impl Stack<u16> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u16 {
-        0
+        unimplemented!()
     }
 
     // Writes a u16 as normal
     fn write(&mut self, offset: u32, val: u16) {
+        unimplemented!()
     }
 }
 
@@ -241,10 +243,11 @@ impl Stack<i32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> i32 {
-        0
+        unimplemented!()
     }
 
     fn write(&mut self, offset: u32, val: i32) {
+        unimplemented!()
     }
 }
 
@@ -269,10 +272,11 @@ impl Stack<u32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> u32 {
-        0
+        unimplemented!()
     }
 
     fn write(&mut self, offset: u32, val: u32) {
+        unimplemented!()
     }
 }
 
@@ -299,9 +303,10 @@ impl Stack<f32> for GlulxStack {
     }
 
     fn read(&self, offset: u32) -> f32 {
-        0.
+        unimplemented!()
     }
 
     fn write(&mut self, offset: u32, val: f32) {
+        unimplemented!()
     }
 }
