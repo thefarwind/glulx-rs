@@ -1,3 +1,5 @@
+use std::mem::size_of;
+
 use memory::{
     GlulxMemory,
     Memory,
@@ -806,28 +808,28 @@ trait ReadRegister<T> {
 
 
 macro_rules! read_operand {
-    (@const $self_:ident, $rtype:ty, $rsize:expr) => {{
+    (@const $self_:ident, $rtype:ty) => {{
         let data: $rtype = $self_.memory.read($self_.program_counter);
-        $self_.program_counter += $rsize;
+        $self_.program_counter += size_of::<$rtype>() as u32;
         data as _
     }};
-    (@addr $self_:ident, $rtype:ty, $rsize:expr) => {{
+    (@addr $self_:ident, $rtype:ty) => {{
         let address: $rtype = $self_.memory.read($self_.program_counter);
-        $self_.program_counter += $rsize;
+        $self_.program_counter += size_of::<$rtype>() as u32;
         $self_.memory.read(address as u32)
     }};
     (@pop $self_:ident, $rtype:ty) => {{
         let value: $rtype = $self_.stack.pop();
         value as _
     }};
-    (@frame $self_:ident, $rtype:ty, $rsize:expr) => {{
+    (@frame $self_:ident, $rtype:ty) => {{
         let address: $rtype = $self_.memory.read($self_.program_counter);
-        $self_.program_counter += $rsize;
+        $self_.program_counter += size_of::<$rtype>() as u32;
         $self_.stack.read(address as u32)
     }};
-    (@ram $self_:ident, $rtype:ty, $rsize:expr) => {{
+    (@ram $self_:ident, $rtype:ty) => {{
         let address: $rtype = $self_.memory.read($self_.program_counter);
-        $self_.program_counter += $rsize;
+        $self_.program_counter += size_of::<$rtype>() as u32;
         $self_.memory.ram_read(address as u32)
     }}
 }
@@ -837,21 +839,21 @@ impl ReadRegister<u8> for Glulx {
     fn read_register(&mut self, mode: u8) -> u8 {
         match mode {
             0x0 => 0x0,
-            0x1 => read_operand!(@const self, i8, 0x1),
+            0x1 => read_operand!(@const self, i8),
             0x2 => panic!("cannot load two byte u8"),
             0x3 => panic!("cannot load four byte u8"),
-            0x4 => panic!("mode 0x4 not supported by load"),
-            0x5 => read_operand!(@addr self, u8, 0x1),
-            0x6 => read_operand!(@addr self, u16, 0x2),
-            0x7 => read_operand!(@addr self, u32, 0x4),
+            0x4 => panic!("mode 0x4 not supported"),
+            0x5 => read_operand!(@addr self, u8),
+            0x6 => read_operand!(@addr self, u16),
+            0x7 => read_operand!(@addr self, u32),
             0x8 => read_operand!(@pop self, u32),
-            0x9 => read_operand!(@frame self, u8, 0x1),
-            0xA => read_operand!(@frame self, u16, 0x2),
+            0x9 => read_operand!(@frame self, u8),
+            0xA => read_operand!(@frame self, u16),
             0xC => panic!("mode 0xC not supported"),
-            0xB => read_operand!(@frame self, u32, 0x4),
-            0xD => read_operand!(@ram self, u8, 0x1),
-            0xE => read_operand!(@ram self, u16, 0x2),
-            0xF => read_operand!(@ram self, u32, 0x4),
+            0xB => read_operand!(@frame self, u32),
+            0xD => read_operand!(@ram self, u8),
+            0xE => read_operand!(@ram self, u16),
+            0xF => read_operand!(@ram self, u32),
             _ => unreachable!(),
         }
     }
@@ -862,21 +864,21 @@ impl ReadRegister<u16> for Glulx {
     fn read_register(&mut self, mode: u8) -> u16 {
         match mode {
             0x0 => 0x0,
-            0x1 => read_operand!(@const self, i8, 0x1),
-            0x2 => read_operand!(@const self, i16, 0x2),
+            0x1 => read_operand!(@const self, i8),
+            0x2 => read_operand!(@const self, i16),
             0x3 => panic!("cannot load four byte u16"),
             0x4 => panic!("mode 0x4 not supported"),
-            0x5 => read_operand!(@addr self, u8, 0x1),
-            0x6 => read_operand!(@addr self, u16, 0x2),
-            0x7 => read_operand!(@addr self, u32, 0x4),
+            0x5 => read_operand!(@addr self, u8),
+            0x6 => read_operand!(@addr self, u16),
+            0x7 => read_operand!(@addr self, u32),
             0x8 => read_operand!(@pop self, u32),
-            0x9 => read_operand!(@frame self, u8, 0x1),
-            0xA => read_operand!(@frame self, u16, 0x2),
-            0xB => read_operand!(@frame self, u32, 0x4),
+            0x9 => read_operand!(@frame self, u8),
+            0xA => read_operand!(@frame self, u16),
+            0xB => read_operand!(@frame self, u32),
             0xC => panic!("mode 0xC not supported"),
-            0xD => read_operand!(@ram self, u8, 0x1),
-            0xE => read_operand!(@ram self, u16, 0x2),
-            0xF => read_operand!(@ram self, u32, 0x4),
+            0xD => read_operand!(@ram self, u8),
+            0xE => read_operand!(@ram self, u16),
+            0xF => read_operand!(@ram self, u32),
             _ => unreachable!(),
         }
     }
@@ -887,21 +889,21 @@ impl ReadRegister<u32> for Glulx {
     fn read_register(&mut self, mode: u8) -> u32 {
         match mode {
             0x0 => 0x0,
-            0x1 => read_operand!(@const self, i8, 0x1),
-            0x2 => read_operand!(@const self, i16, 0x2),
-            0x3 => read_operand!(@const self, i32, 0x4),
+            0x1 => read_operand!(@const self, i8),
+            0x2 => read_operand!(@const self, i16),
+            0x3 => read_operand!(@const self, i32),
             0x4 => panic!("mode 0x4 not supported"),
-            0x5 => read_operand!(@addr self, u8, 0x1),
-            0x6 => read_operand!(@addr self, u16, 0x2),
-            0x7 => read_operand!(@addr self, u32, 0x4),
+            0x5 => read_operand!(@addr self, u8),
+            0x6 => read_operand!(@addr self, u16),
+            0x7 => read_operand!(@addr self, u32),
             0x8 => read_operand!(@pop self, u32),
-            0x9 => read_operand!(@frame self, u8, 0x1),
-            0xA => read_operand!(@frame self, u16, 0x2),
-            0xB => read_operand!(@frame self, u32, 0x4),
+            0x9 => read_operand!(@frame self, u8),
+            0xA => read_operand!(@frame self, u16),
+            0xB => read_operand!(@frame self, u32),
             0xC => panic!("mode 0xC not supported"),
-            0xD => read_operand!(@ram self, u8, 0x1),
-            0xE => read_operand!(@ram self, u16, 0x2),
-            0xF => read_operand!(@ram self, u32, 0x4),
+            0xD => read_operand!(@ram self, u8),
+            0xE => read_operand!(@ram self, u16),
+            0xF => read_operand!(@ram self, u32),
             _ => unreachable!(),
         }
     }
@@ -912,21 +914,21 @@ impl ReadRegister<i32> for Glulx {
     fn read_register(&mut self, mode: u8) -> i32 {
         match mode {
             0x0 => 0x0,
-            0x1 => read_operand!(@const self, i8, 0x1),
-            0x2 => read_operand!(@const self, i16, 0x2),
-            0x3 => read_operand!(@const self, i32, 0x4),
+            0x1 => read_operand!(@const self, i8),
+            0x2 => read_operand!(@const self, i16),
+            0x3 => read_operand!(@const self, i32),
             0x4 => panic!("mode 0x4 not supported"),
-            0x5 => read_operand!(@addr self, u8, 0x1),
-            0x6 => read_operand!(@addr self, u16, 0x2),
-            0x7 => read_operand!(@addr self, u32, 0x4),
+            0x5 => read_operand!(@addr self, u8),
+            0x6 => read_operand!(@addr self, u16),
+            0x7 => read_operand!(@addr self, u32),
             0x8 => read_operand!(@pop self, i32),
-            0x9 => read_operand!(@frame self, u8, 0x1),
-            0xA => read_operand!(@frame self, u16, 0x2),
-            0xB => read_operand!(@frame self, u32, 0x4),
+            0x9 => read_operand!(@frame self, u8),
+            0xA => read_operand!(@frame self, u16),
+            0xB => read_operand!(@frame self, u32),
             0xC => panic!("mode 0xC not supported"),
-            0xD => read_operand!(@ram self, u8, 0x1),
-            0xE => read_operand!(@ram self, u16, 0x2),
-            0xF => read_operand!(@ram self, u32, 0x4),
+            0xD => read_operand!(@ram self, u8),
+            0xE => read_operand!(@ram self, u16),
+            0xF => read_operand!(@ram self, u32),
             _ => unreachable!(),
         }
     }
@@ -939,19 +941,19 @@ impl ReadRegister<f32> for Glulx {
             0x0 => 0.0,
             0x1 => panic!("cannot load single byte f32"),
             0x2 => panic!("cannot load two byte f32"),
-            0x3 => read_operand!(@const self, f32, 0x4),
+            0x3 => read_operand!(@const self, f32),
             0x4 => panic!("mode 0x4 not supported"),
-            0x5 => read_operand!(@addr self, u8, 0x1),
-            0x6 => read_operand!(@addr self, u16, 0x2),
-            0x7 => read_operand!(@addr self, u32, 0x4),
+            0x5 => read_operand!(@addr self, u8),
+            0x6 => read_operand!(@addr self, u16),
+            0x7 => read_operand!(@addr self, u32),
             0x8 => read_operand!(@pop self, f32),
-            0x9 => read_operand!(@frame self, u8, 0x1),
-            0xA => read_operand!(@frame self, u16, 0x2),
-            0xB => read_operand!(@frame self, u32, 0x4),
+            0x9 => read_operand!(@frame self, u8),
+            0xA => read_operand!(@frame self, u16),
+            0xB => read_operand!(@frame self, u32),
             0xC => panic!("mode 0xC not supported"),
-            0xD => read_operand!(@ram self, u8, 0x1),
-            0xE => read_operand!(@ram self, u16, 0x2),
-            0xF => read_operand!(@ram self, u32, 0x4),
+            0xD => read_operand!(@ram self, u8),
+            0xE => read_operand!(@ram self, u16),
+            0xF => read_operand!(@ram self, u32),
             _ => unreachable!(),
         }
     }
@@ -966,17 +968,17 @@ impl ReadRegister<Save> for Glulx {
             0x2 => panic!("cannot save to two byte constant"),
             0x3 => panic!("cannot save to four byte constant"),
             0x4 => panic!("mode 0x4 not supported"),
-            0x5 => Save::Addr(read_operand!(@const self, u8, 0x1)),
-            0x6 => Save::Addr(read_operand!(@const self, u16, 0x2)),
-            0x7 => Save::Addr(read_operand!(@const self, u32, 0x4)),
+            0x5 => Save::Addr(read_operand!(@const self, u8)),
+            0x6 => Save::Addr(read_operand!(@const self, u16)),
+            0x7 => Save::Addr(read_operand!(@const self, u32)),
             0x8 => Save::Push,
-            0x9 => Save::Frame(read_operand!(@const self, u8, 0x1)),
-            0xA => Save::Frame(read_operand!(@const self, u16, 0x2)),
-            0xB => Save::Frame(read_operand!(@const self, u32, 0x4)),
-            0xC => panic!("mode 0xC not supported by Save"),
-            0xD => Save::Ram(read_operand!(@const self, u8, 0x1)),
-            0xE => Save::Ram(read_operand!(@const self, u16, 0x2)),
-            0xF => Save::Ram(read_operand!(@const self, u32, 0x4)),
+            0x9 => Save::Frame(read_operand!(@const self, u8)),
+            0xA => Save::Frame(read_operand!(@const self, u16)),
+            0xB => Save::Frame(read_operand!(@const self, u32)),
+            0xC => panic!("mode 0xC not supported"),
+            0xD => Save::Ram(read_operand!(@const self, u8)),
+            0xE => Save::Ram(read_operand!(@const self, u16)),
+            0xF => Save::Ram(read_operand!(@const self, u32)),
             _ => unreachable!(),
         }
     }
