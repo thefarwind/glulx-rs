@@ -392,6 +392,7 @@ impl<T: SubsystemManager + Default> Glulx<T> {
     }
     /// TODO
     pub fn op_quit(&mut self) {
+        self.io.quit();
         unimplemented!()
     }
     /// TODO
@@ -780,6 +781,7 @@ impl<T: SubsystemManager + Default> Glulx<T> {
         let start = self.memory.start_func();
         self.op_call(start, 0x0, Save::Null);
         loop {
+            self.io.tick();
             let opcode = self.opcode_number();
             self.eval(opcode);
         }

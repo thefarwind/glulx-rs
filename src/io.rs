@@ -1,4 +1,4 @@
-pub trait SubsystemManager {
+pub trait SubsystemManager: Subsystem {
     /// sets the active subsystem to the given mode and rock.
     fn set_io_subsystem(&mut self, mode: u32, rock: u32);
 
@@ -19,6 +19,8 @@ pub trait SubsystemManager {
 
 
 pub trait Subsystem {
+    fn tick(&mut self);
+    fn quit(&mut self);
 }
 
 
@@ -36,6 +38,8 @@ impl Filter {
 
 
 impl Subsystem for Filter {
+    fn tick(&mut self){ /* NOP */ }
+    fn quit(&mut self){ /* NOP */ }
 }
 
 
@@ -44,6 +48,8 @@ pub struct Null;
 
 
 impl Subsystem for Null {
+    fn tick(&mut self){ /* NOP */ }
+    fn quit(&mut self){ /* NOP */ }
 }
 
 
@@ -83,4 +89,10 @@ impl SubsystemManager for DefaultManager {
     fn gestalt_io_subsystem(&self, mode: u16) -> u32 {
         if let 0x0...0x1 = mode { 0x1 } else { 0x0 }
     }
+
+}
+
+impl Subsystem for DefaultManager {
+    fn tick(&mut self){ /* NOP */ }
+    fn quit(&mut self){ /* NOP */ }
 }
