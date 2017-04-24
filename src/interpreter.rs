@@ -10,11 +10,17 @@ use stack::{
     Stack,
 };
 
+use io::{
+    SubsystemManager,
+    Subsystem,
+};
 
-pub struct Glulx {
+
+pub struct Glulx<T: SubsystemManager> {
     program_counter: u32,
     stack: GlulxStack,
     memory: GlulxMemory,
+    io: T,
 }
 
 
@@ -45,15 +51,16 @@ macro_rules! opcode_match {
 }
 
 
-impl Glulx {
+impl<T: SubsystemManager + Default> Glulx<T> {
     /// Create a glulx machine with the given ROM loaded.
-    pub fn from_rom(rom: Vec<u8>) -> Result<Glulx, String> {
+    pub fn from_rom(rom: Vec<u8>) -> Result<Glulx<T>, String> {
         GlulxMemory::from_rom(rom).and_then(|memory| {
             let stack = GlulxStack::new(memory.stack_size());
             Ok(Glulx {
                 program_counter: 0,
                 stack: stack,
                 memory: memory,
+                io: T::default(),
             })
         })
     }
@@ -345,16 +352,13 @@ impl Glulx {
             (0x1, _) => 0x1, // interpreter version
             (0x2, _) => 0x0, // setmemsize implemented
             (0x3, _) => 0x0, // saveundo and restoreundo implemented
-            (0x4, 0x0) => 0x1, // iosystem null implemented
-            (0x4, 0x1) => 0x0, // iosystem filter implemented
-            (0x4, 0x2) => 0x0, // iosystem gtk implemented
-            (0x4, 0x20) => 0x0, // iosystem fyrevm implemented
+            (0x4, mode) => self.io.gestalt_io_subsystem(mode),
             (0x5, _) => 0x0, // unicode support implemented
             (0x6, _) => 0x1, // mzero and mcopy implemented
             (0x7, _) => 0x0, // malloc and mfree implemented
             (0x8, _) => 0x0, // accelfunc and accelparam implemented
             (0x9, _) => 0x0, // heap start address implemented
-            (0xA, x) => 0x0, // accelfunc `x` implemented
+            (0xA, func) => 0x0, // accelfunc `x` implemented
             (0xB, _) => 0x1, // float implemented
             _ => 0x0, // default to 0x0
         };
@@ -432,11 +436,13 @@ impl Glulx {
     }
     /// TODO
     pub fn op_getiosys(&mut self, s1: Save, s2: Save) {
-        unimplemented!()
+        let (mode, rock) = self.io.get_io_subsystem();
+        self.save(s1, mode);
+        self.save(s2, rock);
     }
     /// TODO
     pub fn op_setiosys(&mut self, l1: u32, l2: u32) {
-        unimplemented!()
+        self.io.set_io_subsystem(l1, l2)
     }
     /// TODO
     pub fn op_linearsearch(&mut self, l1: u32, l2: u32, l3: u32, l4: u32, l5: u32, l6: u32, l7: u32, s1: Save) {
@@ -835,7 +841,7 @@ macro_rules! read_operand {
 }
 
 
-impl ReadRegister<u8> for Glulx {
+impl<T: SubsystemManager> ReadRegister<u8> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> u8 {
         match mode {
             0x0 => 0x0,
@@ -860,7 +866,7 @@ impl ReadRegister<u8> for Glulx {
 }
 
 
-impl ReadRegister<u16> for Glulx {
+impl<T: SubsystemManager> ReadRegister<u16> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> u16 {
         match mode {
             0x0 => 0x0,
@@ -885,7 +891,7 @@ impl ReadRegister<u16> for Glulx {
 }
 
 
-impl ReadRegister<u32> for Glulx {
+impl<T: SubsystemManager> ReadRegister<u32> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> u32 {
         match mode {
             0x0 => 0x0,
@@ -910,7 +916,7 @@ impl ReadRegister<u32> for Glulx {
 }
 
 
-impl ReadRegister<i32> for Glulx {
+impl<T: SubsystemManager> ReadRegister<i32> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> i32 {
         match mode {
             0x0 => 0x0,
@@ -935,7 +941,7 @@ impl ReadRegister<i32> for Glulx {
 }
 
 
-impl ReadRegister<f32> for Glulx {
+impl<T: SubsystemManager> ReadRegister<f32> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> f32 {
         match mode {
             0x0 => 0.0,
@@ -960,7 +966,7 @@ impl ReadRegister<f32> for Glulx {
 }
 
 
-impl ReadRegister<Save> for Glulx {
+impl<T: SubsystemManager> ReadRegister<Save> for Glulx<T> {
     fn read_register(&mut self, mode: u8) -> Save {
         match mode {
             0x0 => Save::Null,
@@ -990,7 +996,7 @@ trait SaveRegister<T> {
 }
 
 
-impl SaveRegister<u8> for Glulx {
+impl<T: SubsystemManager> SaveRegister<u8> for Glulx<T> {
     fn save(&mut self, save: Save, value: u8){
         use self::Save::*;
 
@@ -1005,7 +1011,7 @@ impl SaveRegister<u8> for Glulx {
 }
 
 
-impl SaveRegister<u16> for Glulx {
+impl<T: SubsystemManager> SaveRegister<u16> for Glulx<T> {
     fn save(&mut self, save: Save, value: u16){
         use self::Save::*;
 
@@ -1020,7 +1026,7 @@ impl SaveRegister<u16> for Glulx {
 }
 
 
-impl SaveRegister<i32> for Glulx {
+impl<T: SubsystemManager> SaveRegister<i32> for Glulx<T> {
     fn save(&mut self, save: Save, value: i32){
         use self::Save::*;
 
@@ -1035,7 +1041,7 @@ impl SaveRegister<i32> for Glulx {
 }
 
 
-impl SaveRegister<u32> for Glulx {
+impl<T: SubsystemManager> SaveRegister<u32> for Glulx<T> {
     fn save(&mut self, save: Save, value: u32){
         use self::Save::*;
 
@@ -1050,7 +1056,7 @@ impl SaveRegister<u32> for Glulx {
 }
 
 
-impl SaveRegister<f32> for Glulx {
+impl<T: SubsystemManager> SaveRegister<f32> for Glulx<T> {
     fn save(&mut self, save: Save, value: f32){
         use self::Save::*;
 
