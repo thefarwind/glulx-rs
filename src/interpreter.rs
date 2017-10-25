@@ -288,17 +288,17 @@ impl Glulx {
     pub fn op_aloadbit(&mut self, l1: u32, l2: u32, s1: Save) {
         unimplemented!()
     }
-    /// TODO
+    /// Store l3 as a u32 at memory location l1 + 4 * l2
     pub fn op_astore(&mut self, l1: u32, l2: u32, l3: u32) {
         self.memory.write(l1 + (l2 << 0x2), l3)
     }
-    /// TODO
+    /// Store l3 as a u16 at memory location l1 + 2 * l2
     pub fn op_astores(&mut self, l1: u32, l2: u32, l3: u32) {
-        unimplemented!()
+        self.memory.write(l1 + (l2 << 0x1), l3 as u16)
     }
-    /// TODO
+    /// Store l3 as a u8 at memory location l1 + l2
     pub fn op_astoreb(&mut self, l1: u32, l2: u32, l3: u32) {
-        unimplemented!()
+        self.memory.write(l1 + l2, l3 as u8)
     }
     /// TODO
     pub fn op_astorebit(&mut self, l1: u32, l2: u32, l3: u32) {
