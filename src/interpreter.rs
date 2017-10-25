@@ -39,8 +39,10 @@ macro_rules! opcode_match {
         match $val {
             $(
                 $num => {
+                    println!("opcode: {:#X}\t{}", $val, stringify!($opcode));
                     opcode_match!(@inner $self_, $($args)*);
                     $(let $args = $self_.read_register($args);)*
+                    $(println!("\targ: {}\t{:?}", stringify!($args), $args);)*
                     $self_.$opcode($($args),*)
                 },
             )*
@@ -633,6 +635,7 @@ impl Glulx {
     /// Return the opcode number from memory, incrementing the program
     /// counter to the end of the opcode, and before operand identifiers.
     fn opcode_number(&mut self) -> u32 {
+        println!("program counter: {:#X}", self.program_counter);
         let top: u8 = self.memory.read(self.program_counter);
         match top {
             _ if top < 0x80 => {
