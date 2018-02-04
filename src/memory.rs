@@ -42,7 +42,9 @@
 use byteorder::{BigEndian, ByteOrder};
 
 
-/// Glulx magic number
+/// The glulx magic number, stored from `0x0..0x4` in the header.
+/// This number is unique to all glulx games. This value should be
+/// `0x476C756C`, which is equivalent to `b"Glul"`.
 const MAGIC_NUMBER: u32 = 0x476C756C;
 
 
@@ -171,8 +173,7 @@ impl GlulxMemory {
         self.read(0x4)
     }
 
-    /// The address indicating the start of the RAM, stored from
-    /// `0x4..0x8` in the header. TODO: MOAR DATA
+    /// The address indicating the start position of the RAM in memory.
     fn ramstart(&self) -> u32 {
         self.read(0x8)
     }
@@ -189,6 +190,8 @@ impl GlulxMemory {
         self.read(0x14)
     }
 
+    /// Returns the address indicating the position of the start
+    /// function in memory.
     pub fn start_func(&self) -> u32 {
         self.read(0x18)
     }
@@ -226,6 +229,7 @@ impl GlulxMemory {
 }
 
 
+/// Defines writing and reading values of type T to and from memory.
 pub trait Memory<T> {
     fn read(&self, ptr: u32) -> T;
     fn write(&mut self, ptr: u32, value: T);

@@ -18,7 +18,11 @@ pub struct Glulx {
     running: bool,
 }
 
-
+/// opcode match builds a switch statement which maps from the opcode
+/// to the opcode function call. The input for each branch of the match
+/// follows the form `code => function(reads, writes)`. This macro
+/// extracts the read and write arguments and then calls the opcode
+/// implementation with the arguments.
 macro_rules! opcode_match {
     (@inner $self_:ident, $arg1:ident $arg2:ident $($args:ident)*) => {
         let ($arg1, $arg2) = $self_.lo_hi();
@@ -772,6 +776,8 @@ impl Glulx {
         );
     }
 
+    /// Initializes the machines. Calls the start function opcode and
+    /// sets flag indicating quit has not been called.
     pub fn init(&mut self) {
         let start = self.memory.start_func();
         self.op_call(start, 0x0, Save::Null);
@@ -784,11 +790,16 @@ impl Glulx {
         self.running
     }
 
+    /// step one cycle in the CPU. All tasks in the emulator
+    /// are considered to take the same number of cycles.
     pub fn step(&mut self) {
         let opcode = self.opcode_number();
         self.eval(opcode);
     }
 
+    /// Runs the machine independent of the environment. In general,
+    /// users will want to call `init`, check `is_running`, and `step`
+    /// from an emulator task which ties this vm into an IO system.
     pub fn run(&mut self) {
         self.init();
         while self.running {
