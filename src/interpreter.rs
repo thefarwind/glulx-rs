@@ -772,14 +772,27 @@ impl Glulx {
         );
     }
 
-    pub fn run(&mut self) {
+    pub fn init(&mut self) {
         let start = self.memory.start_func();
         self.op_call(start, 0x0, Save::Null);
-
         self.running = true;
+    }
+
+    /// Returns flag which indicates whether the quit opcode has been
+    /// called. Should be checked every cycle.
+    pub fn is_running(&self) -> bool {
+        self.running
+    }
+
+    pub fn step(&mut self) {
+        let opcode = self.opcode_number();
+        self.eval(opcode);
+    }
+
+    pub fn run(&mut self) {
+        self.init();
         while self.running {
-            let opcode = self.opcode_number();
-            self.eval(opcode);
+            self.step();
         }
     }
 }
