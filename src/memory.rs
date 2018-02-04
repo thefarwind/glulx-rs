@@ -160,7 +160,7 @@ impl GlulxMemory {
     /// This number is unique to all glulx games. This value should be
     /// `0x476C756C`, which is equivalent to `b"Glul"`.
     fn magic_number(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[..0x4])
+        self.read(0x0)
     }
 
     /// The glulx version number, stored from `0x4..0x8` in the header.
@@ -168,40 +168,40 @@ impl GlulxMemory {
     /// stores the minor version number. The final byte stores the patch
     /// version number.
     pub fn glulx_version(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x4..0x8])
+        self.read(0x4)
     }
 
     /// The address indicating the start of the RAM, stored from
     /// `0x4..0x8` in the header. TODO: MOAR DATA
     fn ramstart(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x8..0xC])
+        self.read(0x8)
     }
 
     fn extstart(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0xC..0x10])
+        self.read(0xC)
     }
 
     fn endmem(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x10..0x14])
+        self.read(0x10)
     }
 
     pub fn stack_size(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x14..0x18])
+        self.read(0x14)
     }
 
     pub fn start_func(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x18..0x1C])
+        self.read(0x18)
     }
 
     fn decoding_tbl(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x1C..0x20])
+        self.read(0x1C)
     }
 
     /// The sum of the intial contents of memory, considered as an array
     /// of `u32`s. When calculated, the checksum value is considered to
     /// be `0`.
     fn checksum(&self) -> u32 {
-        BigEndian::read_u32(&self.memory[0x20..0x24])
+        self.read(0x20)
     }
 
 
