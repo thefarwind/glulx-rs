@@ -15,6 +15,7 @@ pub struct Glulx {
     program_counter: u32,
     stack: GlulxStack,
     memory: GlulxMemory,
+    running: bool,
 }
 
 
@@ -54,6 +55,7 @@ impl Glulx {
                 program_counter: 0,
                 stack: stack,
                 memory: memory,
+                running: false,
             })
         })
     }
@@ -388,7 +390,7 @@ impl Glulx {
     }
     /// TODO
     pub fn op_quit(&mut self) {
-        unimplemented!()
+        self.running = false
     }
     /// TODO
     pub fn op_verify(&mut self, s1: Save) {
@@ -770,10 +772,12 @@ impl Glulx {
         );
     }
 
-    pub fn run(&mut self) -> ! {
+    pub fn run(&mut self) {
         let start = self.memory.start_func();
         self.op_call(start, 0x0, Save::Null);
-        loop {
+
+        self.running = true;
+        while self.running {
             let opcode = self.opcode_number();
             self.eval(opcode);
         }
